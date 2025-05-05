@@ -1,0 +1,59 @@
+# pl_score.py
+def is_plausible_error(pred_tag, true_tag, word, buckwalter_lexicon):
+    """
+    Identifie si une erreur de POS-tagging est plausible selon des règles morphosyntaxiques.
+    Args:
+        pred_tag (str): Étiquette prédite (ex. NOUN).
+        true_tag (str): Étiquette réelle (ex. ADJ).
+        word (str): Mot analysé (ex. كبير).
+        buckwalter_lexicon (dict): Lexique simulant Buckwalter (ex. racines compatibles).
+    Returns:
+        bool: True si l'erreur est plausible, False sinon.
+    """
+    # Simuler un lexique Buckwalter (à remplacer par une vraie implémentation)
+    compatible_roots = {
+        "كبير": ["NOUN", "ADJ"],
+        "كتب": ["VERB", "NOUN"],
+        "سريع": ["ADJ", "ADV"]
+    }
+    # Règle 1 : NOUN <-> ADJ
+    if (pred_tag == "NOUN" and true_tag == "ADJ") or (pred_tag == "ADJ" and true_tag == "NOUN"):
+        if word in compatible_roots and "NOUN" in compatible_roots[word] and "ADJ" in compatible_roots[word]:
+            return True
+    # Règle 2 : VERB <-> NOUN
+    if (pred_tag == "VERB" and true_tag == "NOUN") or (pred_tag == "NOUN" and true_tag == "VERB"):
+        if word in compatible_roots and "VERB" in compatible_roots[word] and "NOUN" in compatible_roots[word]:
+            return True
+    # Règle 3 : ADJ <-> ADV
+    if (pred_tag == "ADJ" and true_tag == "ADV") or (pred_tag == "ADV" and true_tag == "ADJ"):
+        if word in compatible_roots and "ADJ" in compatible_roots[word] and "ADV" in compatible_roots[word]:
+            return True
+    return False
+
+def calculate_pl_score(f1_macro, false_positives, plausible_errors):
+    """
+    Calcule le PL-Score.
+    Args:
+        f1_macro (float): Score F1 Macro.
+        false_positives (int): Nombre total de faux positifs.
+        plausible_errors (int): Nombre d'erreurs plausibles.
+    Returns:
+        float: PL-Score.
+    """
+    return f1_macro + 0.1 * (plausible_errors / false_positives if false_positives > 0 else 0)
+
+# Exemple d'utilisation
+if __name__ == "__main__":
+    # Exemple : phrase "الكتاب الكبير"
+    word = "كبير"
+    pred_tag = "NOUN"
+    true_tag = "ADJ"
+    buckwalter_lexicon = {}  # À remplacer par un vrai lexique
+    if is_plausible_error(pred_tag, true_tag, word, buckwalter_lexicon):
+        print(f"Erreur plausible détectée : {pred_tag} -> {true_tag} pour '{word}'")
+    # Exemple de calcul du PL-Score
+    f1_macro = 83.68
+    false_positives = 13793
+    plausible_errors = 804
+    pl_score = calculate_pl_score(f1_macro, false_positives, plausible_errors)
+    print(f"PL-Score : {pl_score:.2f}%")
